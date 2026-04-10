@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: documents/{userId}/drafts
+    // Document ID: auto-generated or specific docId
+    // Fields:
+    //   - content: string (required, max 1MB) - The raw markdown content
+    //   - updatedAt: timestamp (required) - Last update time
+    //
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidDraft(data) {
+      return data.keys().hasOnly(['content', 'updatedAt']) &&
+             data.content is string && data.content.size() <= 1048576 &&
+             data.updatedAt is timestamp;
+    }
+
+    match /documents/{userId}/drafts/{docId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidDraft(request.resource.data);
+      allow update: if isOwner(userId) && isValidDraft(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+  }
+}

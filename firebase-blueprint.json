@@ -1,0 +1,29 @@
+{
+  "entities": {
+    "DocumentDraft": {
+      "title": "Document Draft",
+      "description": "A markdown document draft saved by a user.",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The raw markdown content."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the document was last updated."
+        }
+      },
+      "required": ["content", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/documents/{userId}/drafts/{docId}": {
+      "schema": {
+        "$ref": "#/entities/DocumentDraft"
+      },
+      "description": "Drafts belonging to a specific user."
+    }
+  }
+}
