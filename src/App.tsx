@@ -9,6 +9,7 @@ import { Preview } from './components/Preview';
 import { Toolbar } from './components/Toolbar';
 import { auth, db, signInAnon } from './lib/firebase';
 import { collection, doc, getDocs, setDoc, serverTimestamp, query, limit } from 'firebase/firestore';
+import { generateContentWithAI } from './lib/ai';
 
 enum OperationType {
   CREATE = 'create',
@@ -47,6 +48,7 @@ export default function App() {
   const [markdown, setMarkdown] = useState('');
   const [previewMode, setPreviewMode] = useState<'html' | 'text'>('html');
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [docId, setDocId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,6 +139,22 @@ export default function App() {
     return () => clearTimeout(handler);
   }, [markdown, userId, docId, isLoading]);
 
+  const handleGenerateAI = async () => {
+    const prompt = window.prompt("What would you like the AI to generate? (e.g., 'Write a markdown guide on React')");
+    if (!prompt) return;
+
+    setIsGeneratingAI(true);
+    try {
+      const generatedText = await generateContentWithAI(prompt);
+      setMarkdown((prev) => prev ? `${prev}\n\n${generatedText}` : generatedText);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "An error occurred while generating content");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -162,6 +180,8 @@ export default function App() {
         previewMode={previewMode} 
         setPreviewMode={setPreviewMode} 
         isSaving={isSaving} 
+        onGenerateAI={handleGenerateAI}
+        isGeneratingAI={isGeneratingAI}
       />
       <div className="flex flex-1 overflow-hidden">
         <Editor value={markdown} onChange={setMarkdown} />

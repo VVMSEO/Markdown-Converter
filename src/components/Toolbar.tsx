@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, Download, FileText, Code } from 'lucide-react';
+import { Copy, Download, FileText, Code, Sparkles, Loader2 } from 'lucide-react';
 import { markdownToHtml, markdownToText } from '../lib/converter';
 
 interface ToolbarProps {
@@ -7,9 +7,11 @@ interface ToolbarProps {
   previewMode: 'html' | 'text';
   setPreviewMode: (mode: 'html' | 'text') => void;
   isSaving: boolean;
+  onGenerateAI: () => void;
+  isGeneratingAI: boolean;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ markdown, previewMode, setPreviewMode, isSaving }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ markdown, previewMode, setPreviewMode, isSaving, onGenerateAI, isGeneratingAI }) => {
   const handleCopyHtml = async () => {
     const html = markdownToHtml(markdown);
     await navigator.clipboard.writeText(html);
@@ -52,6 +54,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({ markdown, previewMode, setPrev
       </div>
       
       <div className="flex items-center space-x-2">
+        <button 
+          onClick={onGenerateAI} 
+          disabled={isGeneratingAI}
+          className="flex items-center px-3 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 mr-4" 
+          title="Generate Content with AI"
+        >
+          {isGeneratingAI ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+          Ask AI
+        </button>
+
         <div className="flex bg-gray-100 rounded-lg p-1 mr-2">
           <button
             onClick={() => setPreviewMode('html')}
